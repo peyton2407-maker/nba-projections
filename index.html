@@ -112,7 +112,7 @@ tr:hover td { background: rgba(255,255,255,0.02); }
       <p>Interactive own-model board for NBA game projections (moneyline, spread, total) and player props, benchmarked against DraftKings.</p>
       <ul>
         <li><strong>Markets:</strong> Full-game ML / spread / total + player PTS, REB, AST, 3PM, PRA, STL, BLK.</li>
-        <li><strong>Model:</strong> Projected minutes × recent per-minute rates, adjusted for pace, home/away, rest, and basic vacancy. Residual layer (fading α) activates after games are played — same philosophy as the HASHMARK football system.</li>
+        <li><strong>Model:</strong> Projected minutes × recent per-minute rates, adjusted for pace, home/away, rest, and basic vacancy. Residual layer (fading α) activates after games are played.</li>
         <li><strong>Odds:</strong> DraftKings primary. Edges shown as model minus DK line.</li>
         <li><strong>Differentiator:</strong> Transparent numbers, residual tracking, clean board. No opaque confidence scores.</li>
       </ul>
@@ -164,7 +164,7 @@ tr:hover td { background: rgba(255,255,255,0.02); }
         <li>Total residuals</li>
         <li>Player stat residuals (PTS / REB / AST)</li>
       </ul>
-      <p>Fading alpha: ~0.45 early season → ~0.12 later. Residuals adjust future projections the same way the football system does.</p>
+      <p>Fading alpha: ~0.45 early season → ~0.12 later. Residuals adjust future projections.</p>
       <div id="residual-content"></div>
     </div>
   </section>
