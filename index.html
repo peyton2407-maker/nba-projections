@@ -3,21 +3,331 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NBA PROJECTIONS · Own Model vs DraftKings</title>
+<title>NBA PJ MODEL · Own Model vs DraftKings</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #0a0e12;
-  --card: #12181f;
-  --ink: #e8eef4;
-  --muted: #8b9bb0;
-  --accent: #3dff8a;
-  --accent2: #4da6ff;
-  --gold: #e8c56a;
-  --border: #1e2a36;
-  --good: #3dff8a;
-  --bad: #ff5c7a;
+  --bg: #07090f;
+  --card: #12151e;
+  --ink: #f4f6fb;
+  --muted: #9aa4bd;
+  --accent: #ff6b35;
+  --accent2: #4cc9f0;
+  --gold: #ffd166;
+  --border: #252a38;
+  --good: #2ee6a6;
+  --bad: #ff5d73;
+  --glow: rgba(255,107,53,0.15);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: "Outfit", system-ui, sans-serif;
+  background: radial-gradient(1200px 600px at 10% -10%, #1a1230 0%, transparent 50%),
+              radial-gradient(900px 500px at 100% 0%, #0d1c2e 0%, transparent 45%),
+              var(--bg);
+  color: var(--ink);
+  line-height: 1.45;
+}
+header {
+  padding: 28px 32px 16px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(18,21,30,0.9) 0%, transparent 100%);
+}
+h1 { margin: 0 0 4px; font-size: 30px; font-weight: 700; letter-spacing: -0.6px; }
+h1 span { color: var(--accent); text-shadow: 0 0 18px var(--glow); }
+.sub { color: var(--muted); font-size: 14px; }
+.meta { font-size: 12px; color: #6a7888; margin-top: 6px; }
+.disclaimer { font-size: 11px; color: #6a7888; margin-top: 10px; }
+.injury-banner {
+  background: #16120c; border-bottom: 1px solid var(--border); padding: 6px 32px;
+  font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 8px; cursor: pointer;
+}
+.injury-banner strong { color: var(--accent); }
+.injury-details {
+  display: none; background: #12100c; border-bottom: 1px solid var(--border); padding: 12px 32px; font-size: 13px;
+}
+.injury-details.show { display: block; }
+nav {
+  display: flex; gap: 6px; padding: 14px 32px; border-bottom: 1px solid var(--border); background: rgba(10,12,18,0.85); flex-wrap: wrap;
+  backdrop-filter: blur(8px);
+}
+nav button {
+  background: transparent; border: 1px solid var(--border); color: var(--muted);
+  padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600;
+  transition: all 0.15s ease;
+}
+nav button:hover { border-color: var(--accent); color: var(--ink); }
+nav button.active { background: var(--accent); color: #0a0e12; border-color: var(--accent); box-shadow: 0 0 12px var(--glow); }
+.container { padding: 22px 32px 80px; max-width: 1440px; margin: 0 auto; }
+.section-title { font-size: 18px; font-weight: 650; margin: 0 0 14px; display: flex; align-items: center; gap: 10px; }
+.section-title small { color: var(--muted); font-weight: 500; font-size: 13px; }
+.game-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 14px; }
+.card {
+  background: linear-gradient(180deg, #161a24 0%, var(--card) 100%);
+  border: 1px solid var(--border); border-radius: 16px; padding: 16px;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.card:hover { border-color: #3a4158; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.35); }
+.card.clickable { cursor: pointer; }
+.card.clickable:hover { border-color: var(--accent); }
+.game-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.matchup { font-size: 17px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.team-logo { width: 28px; height: 28px; border-radius: 6px; object-fit: contain; background: #0d1018; }
+.time { color: var(--muted); font-size: 12px; }
+.markets { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.market { background: #0e121a; border-radius: 10px; padding: 9px; text-align: center; border: 1px solid #1e2433; }
+.market label { display: block; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+.market .proj { font-size: 15px; font-weight: 700; }
+.market .dk { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.edge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-top: 3px; }
+.edge.pos { background: rgba(46,230,166,0.15); color: var(--good); }
+.edge.neg { background: rgba(255,93,115,0.15); color: var(--bad); }
+.edge.neutral { background: #252a38; color: var(--muted); }
+.note { font-size: 12px; color: var(--muted); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; padding: 9px 7px; border-bottom: 1px solid var(--border); }
+td { padding: 9px 7px; border-bottom: 1px solid #1a1f2c; }
+tr:hover td { background: rgba(255,255,255,0.03); }
+.player { font-weight: 600; }
+.team { color: var(--muted); font-size: 11px; }
+.stat { font-variant-numeric: tabular-nums; }
+.positive { color: var(--good); font-weight: 650; }
+.negative { color: var(--bad); }
+.brief, .residuals { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 18px; margin-bottom: 20px; font-size: 14px; }
+.filters { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
+.filters button, .filters select {
+  background: #0e121a; border: 1px solid var(--border); color: var(--ink);
+  padding: 6px 11px; border-radius: 6px; font-size: 12px; cursor: pointer;
+}
+.filters button.active { background: var(--accent); color: #0a0e12; border-color: var(--accent); }
+.modal-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+  z-index: 1000; align-items: center; justify-content: center; padding: 20px;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: #161a24; border: 1px solid var(--border); border-radius: 16px;
+  max-width: 640px; width: 100%; max-height: 85vh; overflow-y: auto; padding: 22px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+.modal h3 { margin: 0 0 6px; font-size: 20px; }
+.modal .close {
+  float: right; background: transparent; border: none; color: var(--muted);
+  font-size: 22px; cursor: pointer; line-height: 1;
+}
+.detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+.detail-label { color: var(--muted); }
+@media (max-width: 720px) {
+  .markets { grid-template-columns: 1fr; }
+  header, .container, nav, .injury-banner, .injury-details { padding-left: 16px; padding-right: 16px; }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: "Outfit", system-ui, sans-serif;
+  background: #f7f8fb url("https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=1600&q=60") center/cover fixed;
+  background-blend-mode: soft-light;
+  color: var(--ink);
+  line-height: 1.45;
+}
+header {
+  padding: 28px 32px 16px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(8px);
+}
+h1 { margin: 0 0 4px; font-size: 30px; font-weight: 700; letter-spacing: -0.6px; }
+h1 span { color: var(--accent); }
+.sub { color: var(--muted); font-size: 14px; }
+.meta { font-size: 12px; color: #7a8499; margin-top: 6px; }
+.disclaimer { font-size: 11px; color: #7a8499; margin-top: 10px; }
+.injury-banner {
+  background: #fff8f3; border-bottom: 1px solid var(--border); padding: 6px 32px;
+  font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 8px; cursor: pointer;
+}
+.injury-banner strong { color: var(--accent); }
+.injury-details {
+  display: none; background: #fff; border-bottom: 1px solid var(--border); padding: 12px 32px; font-size: 13px;
+}
+.injury-details.show { display: block; }
+nav {
+  display: flex; gap: 6px; padding: 14px 32px; border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.9); flex-wrap: wrap;
+  backdrop-filter: blur(8px);
+}
+nav button {
+  background: transparent; border: 1px solid var(--border); color: var(--muted);
+  padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600;
+}
+nav button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.container { padding: 22px 32px 80px; max-width: 1440px; margin: 0 auto; }
+.section-title { font-size: 18px; font-weight: 650; margin: 0 0 14px; display: flex; align-items: center; gap: 10px; }
+.section-title small { color: var(--muted); font-weight: 500; font-size: 13px; }
+.game-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 14px; }
+.card {
+  background: #fff;
+  border: 1px solid var(--border); border-radius: 16px; padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.card:hover { border-color: #d0d5e0; box-shadow: 0 6px 16px rgba(0,0,0,0.08); }
+.card.clickable { cursor: pointer; }
+.card.clickable:hover { border-color: var(--accent); }
+.game-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.matchup { font-size: 17px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.team-logo { width: 32px; height: 32px; border-radius: 6px; object-fit: contain; background: #f4f5f8; }
+.time { color: var(--muted); font-size: 12px; }
+.markets { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.market { background: #f4f6fa; border-radius: 10px; padding: 9px; text-align: center; border: 1px solid #e8ebf2; }
+.market label { display: block; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+.market .proj { font-size: 15px; font-weight: 700; }
+.market .dk { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.edge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-top: 3px; }
+.edge.pos { background: rgba(42,157,143,0.12); color: var(--good); }
+.edge.neg { background: rgba(230,57,70,0.12); color: var(--bad); }
+.edge.neutral { background: #eef0f5; color: var(--muted); }
+.note { font-size: 12px; color: var(--muted); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; padding: 9px 7px; border-bottom: 1px solid var(--border); }
+td { padding: 9px 7px; border-bottom: 1px solid #eef0f5; }
+tr:hover td { background: #fafbfc; }
+.player { font-weight: 600; }
+.team { color: var(--muted); font-size: 11px; }
+.stat { font-variant-numeric: tabular-nums; }
+.positive { color: var(--good); font-weight: 650; }
+.negative { color: var(--bad); }
+.brief, .residuals { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 18px; margin-bottom: 20px; font-size: 14px; }
+.filters { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
+.filters button, .filters select {
+  background: #fff; border: 1px solid var(--border); color: var(--ink);
+  padding: 6px 11px; border-radius: 6px; font-size: 12px; cursor: pointer;
+}
+.filters button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.modal-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+  z-index: 1000; align-items: center; justify-content: center; padding: 20px;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: #fff; border: 1px solid var(--border); border-radius: 16px;
+  max-width: 640px; width: 100%; max-height: 85vh; overflow-y: auto; padding: 22px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+}
+.modal h3 { margin: 0 0 6px; font-size: 20px; }
+.modal .close {
+  float: right; background: transparent; border: none; color: var(--muted);
+  font-size: 22px; cursor: pointer; line-height: 1;
+}
+.detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+.detail-label { color: var(--muted); }
+@media (max-width: 720px) {
+  .markets { grid-template-columns: 1fr; }
+  header, .container, nav, .injury-banner, .injury-details { padding-left: 16px; padding-right: 16px; }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: "Outfit", system-ui, sans-serif;
+  background: radial-gradient(1200px 600px at 10% -10%, #1a1230 0%, transparent 50%),
+              radial-gradient(900px 500px at 100% 0%, #0d1c2e 0%, transparent 45%),
+              var(--bg);
+  color: var(--ink);
+  line-height: 1.45;
+}
+header {
+  padding: 28px 32px 16px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(18,21,30,0.9) 0%, transparent 100%);
+  position: relative;
+}
+h1 { margin: 0 0 4px; font-size: 30px; font-weight: 700; letter-spacing: -0.6px; }
+h1 span { color: var(--accent); text-shadow: 0 0 18px var(--glow); }
+.sub { color: var(--muted); font-size: 14px; }
+.meta { font-size: 12px; color: #6a7888; margin-top: 6px; }
+.disclaimer { font-size: 11px; color: #6a7888; margin-top: 10px; }
+.injury-banner {
+  background: #16120c; border-bottom: 1px solid var(--border); padding: 6px 32px;
+  font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 8px; cursor: pointer;
+}
+.injury-banner strong { color: var(--accent); }
+.injury-details {
+  display: none; background: #12100c; border-bottom: 1px solid var(--border); padding: 12px 32px; font-size: 13px;
+}
+.injury-details.show { display: block; }
+nav {
+  display: flex; gap: 6px; padding: 14px 32px; border-bottom: 1px solid var(--border); background: rgba(10,12,18,0.85); flex-wrap: wrap;
+  backdrop-filter: blur(8px);
+}
+nav button {
+  background: transparent; border: 1px solid var(--border); color: var(--muted);
+  padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600;
+  transition: all 0.15s ease;
+}
+nav button:hover { border-color: var(--accent); color: var(--ink); }
+nav button.active { background: var(--accent); color: #0a0e12; border-color: var(--accent); box-shadow: 0 0 12px var(--glow); }
+.container { padding: 22px 32px 80px; max-width: 1440px; margin: 0 auto; }
+.section-title { font-size: 18px; font-weight: 650; margin: 0 0 14px; display: flex; align-items: center; gap: 10px; }
+.section-title small { color: var(--muted); font-weight: 500; font-size: 13px; }
+.game-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 14px; }
+.card {
+  background: linear-gradient(180deg, #161a24 0%, var(--card) 100%);
+  border: 1px solid var(--border); border-radius: 16px; padding: 16px;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.card:hover { border-color: #3a4158; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.35); }
+.card.clickable { cursor: pointer; }
+.card.clickable:hover { border-color: var(--accent); }
+.game-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.matchup { font-size: 17px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.team-logo { width: 28px; height: 28px; border-radius: 6px; object-fit: contain; background: #0d1018; }
+.time { color: var(--muted); font-size: 12px; }
+.markets { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.market { background: #0e121a; border-radius: 10px; padding: 9px; text-align: center; border: 1px solid #1e2433; }
+.market label { display: block; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+.market .proj { font-size: 15px; font-weight: 700; }
+.market .dk { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.edge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-top: 3px; }
+.edge.pos { background: rgba(46,230,166,0.15); color: var(--good); }
+.edge.neg { background: rgba(255,93,115,0.15); color: var(--bad); }
+.edge.neutral { background: #252a38; color: var(--muted); }
+.note { font-size: 12px; color: var(--muted); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; padding: 9px 7px; border-bottom: 1px solid var(--border); }
+td { padding: 9px 7px; border-bottom: 1px solid #1a1f2c; }
+tr:hover td { background: rgba(255,255,255,0.03); }
+.player { font-weight: 600; }
+.team { color: var(--muted); font-size: 11px; }
+.stat { font-variant-numeric: tabular-nums; }
+.positive { color: var(--good); font-weight: 650; }
+.negative { color: var(--bad); }
+.brief, .residuals { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 18px; margin-bottom: 20px; font-size: 14px; }
+.brief h2, .residuals h2 { margin: 0 0 8px; font-size: 16px; }
+.filters { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
+.filters button, .filters select {
+  background: #0e121a; border: 1px solid var(--border); color: var(--ink);
+  padding: 6px 11px; border-radius: 6px; font-size: 12px; cursor: pointer;
+}
+.filters button.active { background: var(--accent); color: #0a0e12; border-color: var(--accent); }
+.modal-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+  z-index: 1000; align-items: center; justify-content: center; padding: 20px;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: #161a24; border: 1px solid var(--border); border-radius: 16px;
+  max-width: 640px; width: 100%; max-height: 85vh; overflow-y: auto; padding: 22px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+.modal h3 { margin: 0 0 6px; font-size: 20px; }
+.modal .close {
+  float: right; background: transparent; border: none; color: var(--muted);
+  font-size: 22px; cursor: pointer; line-height: 1;
+}
+.detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+.detail-label { color: var(--muted); }
+@media (max-width: 720px) {
+  .markets { grid-template-columns: 1fr; }
+  header, .container, nav, .injury-banner, .injury-details { padding-left: 16px; padding-right: 16px; }
 }
 * { box-sizing: border-box; }
 body {
@@ -30,15 +340,25 @@ body {
 header {
   padding: 28px 32px 16px;
   border-bottom: 1px solid var(--border);
-  background: linear-gradient(180deg, #0f151c 0%, var(--bg) 100%);
+  background: linear-gradient(180deg, #12151f 0%, var(--bg) 100%);
 }
 h1 { margin: 0 0 4px; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
 h1 span { color: var(--accent); }
 .sub { color: var(--muted); font-size: 14px; }
 .meta { font-size: 12px; color: #6a7888; margin-top: 6px; }
 .disclaimer { font-size: 11px; color: #6a7888; margin-top: 10px; }
+.injury-banner {
+  background: #1a1510; border-bottom: 1px solid var(--border); padding: 6px 32px;
+  font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 8px; cursor: pointer;
+}
+.injury-banner strong { color: var(--accent); }
+.injury-details {
+  display: none; background: #14110e; border-bottom: 1px solid var(--border); padding: 12px 32px; font-size: 13px;
+}
+.injury-details.show { display: block; }
+.injury-details table { margin-top: 8px; }
 nav {
-  display: flex; gap: 6px; padding: 14px 32px; border-bottom: 1px solid var(--border); background: #0d1218; flex-wrap: wrap;
+  display: flex; gap: 6px; padding: 14px 32px; border-bottom: 1px solid var(--border); background: #10131a; flex-wrap: wrap;
 }
 nav button {
   background: transparent; border: 1px solid var(--border); color: var(--muted);
@@ -50,19 +370,39 @@ nav button.active { background: var(--accent); color: #0a0e12; border-color: var
 .section-title small { color: var(--muted); font-weight: 500; font-size: 13px; }
 .game-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 14px; }
 .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; }
-.card:hover { border-color: #2a3a4a; }
+.card.clickable { cursor: pointer; }
+.card.clickable:hover { border-color: var(--accent); }
+.modal-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65);
+  z-index: 1000; align-items: center; justify-content: center; padding: 20px;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+  max-width: 640px; width: 100%; max-height: 85vh; overflow-y: auto; padding: 22px;
+}
+.modal h3 { margin: 0 0 6px; font-size: 20px; }
+.modal .close {
+  float: right; background: transparent; border: none; color: var(--muted);
+  font-size: 22px; cursor: pointer; line-height: 1;
+}
+.detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+.detail-row:last-child { border-bottom: none; }
+.detail-label { color: var(--muted); }
+.props-mini { margin-top: 16px; }
+.props-mini table { font-size: 12px; }
 .game-header { display: flex; justify-content: space-between; margin-bottom: 12px; }
 .matchup { font-size: 17px; font-weight: 700; }
 .time { color: var(--muted); font-size: 12px; }
 .markets { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
-.market { background: #0d141b; border-radius: 10px; padding: 9px; text-align: center; }
+.market { background: #10131a; border-radius: 10px; padding: 9px; text-align: center; }
 .market label { display: block; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
 .market .proj { font-size: 15px; font-weight: 700; }
 .market .dk { font-size: 11px; color: var(--muted); margin-top: 2px; }
 .edge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-top: 3px; }
 .edge.pos { background: rgba(61,255,138,0.15); color: var(--good); }
 .edge.neg { background: rgba(255,92,122,0.15); color: var(--bad); }
-.edge.neutral { background: #1e2a36; color: var(--muted); }
+.edge.neutral { background: #2a2e3d; color: var(--muted); }
 .note { font-size: 12px; color: var(--muted); }
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
 th { text-align: left; color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; padding: 9px 7px; border-bottom: 1px solid var(--border); }
@@ -78,12 +418,12 @@ tr:hover td { background: rgba(255,255,255,0.02); }
 .brief ul, .residuals ul { margin: 6px 0 0 16px; padding: 0; color: var(--muted); }
 .filters { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
 .filters button, .filters select {
-  background: #0d141b; border: 1px solid var(--border); color: var(--ink);
+  background: #10131a; border: 1px solid var(--border); color: var(--ink);
   padding: 6px 11px; border-radius: 6px; font-size: 12px; cursor: pointer;
 }
 .filters button.active { background: var(--accent); color: #0a0e12; border-color: var(--accent); }
 .hosting { font-size: 13px; color: var(--muted); }
-.hosting code { background: #0d141b; padding: 2px 6px; border-radius: 4px; }
+.hosting code { background: #10131a; padding: 2px 6px; border-radius: 4px; }
 @media (max-width: 720px) {
   .markets { grid-template-columns: 1fr; }
   header, .container, nav { padding-left: 16px; padding-right: 16px; }
@@ -92,40 +432,66 @@ tr:hover td { background: rgba(255,255,255,0.02); }
 </head>
 <body>
 <header>
-  <h1>NBA <span>PROJECTIONS</span></h1>
+  <h1><img src="https://cdn.nba.com/logos/leagues/logo-nba.svg" alt="NBA" style="height:28px;vertical-align:middle;margin-right:8px;">NBA <span>PJ MODEL</span></h1>
   <div class="sub">Own model · DraftKings benchmark · Opening Night & early week</div>
   <div class="meta" id="generated"></div>
   <div class="disclaimer">For entertainment and information only. 21+. Not betting advice. Model estimates can be wrong. Lines move — confirm at the book. Gambling problem? Call 1-800-GAMBLER.</div>
 </header>
+<div class="injury-banner" id="injury-toggle">
+  <strong>Injuries</strong>
+  <span style="color:#6a7888;">· Updated 10/19 6:00 PM ET</span>
+</div>
+<div class="injury-details" id="injury-details">
+  <div style="margin-bottom:8px;">
+    Sources: <a href="https://x.com/ShamsCharania" target="_blank" style="color:var(--accent);">@ShamsCharania</a> · 
+    <a href="https://ak-static.cms.nba.com/referee/injury/Injury-Report_2026-10-19_06_00PM.pdf" target="_blank" style="color:var(--accent);">NBA.com official report</a>
+  </div>
+  <table>
+    <thead><tr><th>Player</th><th>Team</th><th>Status</th><th>Reason</th><th>Game</th></tr></thead>
+    <tbody>
+      <tr><td>Devin Carter</td><td>BOS</td><td class="negative">Out</td><td>Illness</td><td>BOS@DET</td></tr>
+      <tr><td>Dominick Barlow</td><td>PHI</td><td class="negative">Out</td><td>Low back stress reaction</td><td>PHI@NYK</td></tr>
+      <tr><td>Tacko Fall</td><td>PHI</td><td class="negative">Out</td><td>Left quadriceps strain</td><td>PHI@NYK</td></tr>
+      <tr><td>Ariel Hukporti</td><td>PHI</td><td class="negative">Out</td><td>Right Achilles rupture</td><td>PHI@NYK</td></tr>
+      <tr><td>Adem Bona</td><td>PHI</td><td>Questionable</td><td>Left foot sprain</td><td>PHI@NYK</td></tr>
+      <tr><td>Anfernee Simons</td><td>PHI</td><td>Questionable</td><td>Left hamstring tightness</td><td>PHI@NYK</td></tr>
+      <tr><td>Dean Wade</td><td>PHI</td><td>Questionable</td><td>Left ankle sprain</td><td>PHI@NYK</td></tr>
+      <tr><td>Tobias Harris</td><td>SAS</td><td class="negative">Out</td><td>Left calf strain</td><td>OKC@SAS</td></tr>
+      <tr><td>Jayden Quaintance</td><td>SAS</td><td class="negative">Out</td><td>Right knee surgery</td><td>OKC@SAS</td></tr>
+      <tr><td>Ben Simmons</td><td>SAC</td><td class="negative">Out (season)</td><td>Torn Achilles (Shams)</td><td>—</td></tr>
+    </tbody>
+  </table>
+</div>
 <nav>
-  <button class="active" data-tab="brief">Brief</button>
+  <button class="active" data-tab="games">Games</button>
   <button data-tab="best">Best Bets</button>
-  <button data-tab="games">Games</button>
   <button data-tab="props">Player Props</button>
+  <button data-tab="parlays">Parlays</button>
+  <button data-tab="awards">Awards</button>
+  <button data-tab="futures">Team Futures</button>
+  <button data-tab="trends">Trends</button>
+  <button data-tab="live">Live</button>
+  <button data-tab="bankroll">Bankroll</button>
+  <button data-tab="notes">Model Notes</button>
+  <button data-tab="schedule">Schedule</button>
   <button data-tab="residuals">Residuals</button>
   <button data-tab="host">Host & Pipeline</button>
 </nav>
 <div class="container">
-  <section id="brief" class="tab">
-    <div class="brief">
-      <h2>Product Brief</h2>
-      <p>Interactive own-model board for NBA game projections (moneyline, spread, total) and player props, benchmarked against DraftKings.</p>
-      <ul>
-        <li><strong>Markets:</strong> Full-game ML / spread / total + player PTS, REB, AST, 3PM, PRA, STL, BLK.</li>
-        <li><strong>Model:</strong> Projected minutes × recent per-minute rates, adjusted for pace, home/away, rest, and basic vacancy. Residual layer (fading α) activates after games are played.</li>
-        <li><strong>Odds:</strong> DraftKings primary. Edges shown as model minus DK line.</li>
-        <li><strong>Differentiator:</strong> Transparent numbers, residual tracking, clean board. No opaque confidence scores.</li>
-      </ul>
-    </div>
-  </section>
-
   <section id="best" class="tab" style="display:none;">
     <div class="section-title">Best Bets <small>Largest model edges vs DraftKings</small></div>
+    <div class="filters" id="best-filters">
+      <button data-best="all" class="active">All</button>
+      <button data-best="PRA">PRA</button>
+      <button data-best="PTS">Points</button>
+      <button data-best="REB">Rebounds</button>
+      <button data-best="AST">Assists</button>
+    </div>
     <div class="game-grid" id="best-board"></div>
     <p style="font-size:12px;color:var(--muted);margin-top:12px;">Edges of 0.8+ points highlighted. Model vs market only — not a guarantee.</p>
   </section>
 
-  <section id="games" class="tab" style="display:none;">
+  <section id="games" class="tab">
     <div class="section-title">Games <small>Model vs DraftKings</small></div>
     <div class="game-grid" id="games-board"></div>
   </section>
@@ -155,6 +521,113 @@ tr:hover td { background: rgba(255,255,255,0.02); }
     </div>
   </section>
 
+  <section id="parlays" class="tab" style="display:none;">
+    <div class="section-title">Parlays <small>Suggested combinations from strongest edges</small></div>
+    <div class="filters" id="parlay-filters">
+      <button data-legs="2" class="active">2-Leg</button>
+      <button data-legs="3">3-Leg</button>
+    </div>
+    <div id="parlays-board"></div>
+    <p style="font-size:12px;color:var(--muted);margin-top:12px;">Built from model edges ≥ 0.8. Not betting advice — confirm lines and correlations.</p>
+  </section>
+    <div class="section-title">Trends / Form <small>Recent performance vs expectations</small></div>
+    <div class="brief">
+      <p>Residuals and form data activate after the first games. Once results exist the pipeline will show:</p>
+      <ul>
+        <li>Team margin and total residuals (fading α)</li>
+        <li>Player stat residuals (PTS / REB / AST / PRA)</li>
+        <li>Home/away and rest-day splits</li>
+        <li>Pace and efficiency trends</li>
+      </ul>
+      <div id="trends-content"></div>
+    </div>
+  </section>
+
+  <section id="awards" class="tab" style="display:none;">
+    <div class="section-title">Awards <small>Model projections + DraftKings odds · 10/19/26</small></div>
+    <div class="game-grid">
+      <div class="card">
+        <div class="section-title" style="font-size:15px;">MVP</div>
+        <div class="detail-row"><span>Nikola Jokić</span><span>Model 28% · DK +500</span></div>
+        <div class="detail-row"><span>Shai Gilgeous-Alexander</span><span>Model 22% · DK +380</span></div>
+        <div class="detail-row"><span>Jayson Tatum</span><span>Model 14% · DK +1800</span></div>
+        <div class="detail-row"><span>Victor Wembanyama</span><span>Model — · DK +205</span></div>
+        <div class="note" style="margin-top:8px;">Model numbers are independent. DK odds shown for comparison.</div>
+      </div>
+      <div class="card">
+        <div class="section-title" style="font-size:15px;">Defensive Player of the Year</div>
+        <div class="detail-row"><span>Victor Wembanyama</span><span>Model 31% · DK -360</span></div>
+        <div class="detail-row"><span>Chet Holmgren</span><span>Model 16% · DK +1200</span></div>
+        <div class="detail-row"><span>Bam Adebayo</span><span>Model 11% · DK +4000</span></div>
+        <div class="note" style="margin-top:8px;">DK has Wembanyama as a heavy favorite.</div>
+      </div>
+      <div class="card">
+        <div class="section-title" style="font-size:15px;">Rookie of the Year</div>
+        <div class="detail-row"><span>Cameron Boozer</span><span>DK +270</span></div>
+        <div class="note" style="margin-top:8px;">Model updates once regular-season minutes and production are available. DK odds shown.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="futures" class="tab" style="display:none;">
+    <div class="section-title">Team Futures <small>DraftKings odds · as of 10/19/26</small></div>
+    <div class="game-grid">
+      <div class="card">
+        <div class="section-title" style="font-size:15px;">NBA Championship</div>
+        <div class="detail-row"><span>Oklahoma City Thunder</span><strong>+270</strong></div>
+        <div class="detail-row"><span>San Antonio Spurs</span><strong>+270</strong></div>
+        <div class="detail-row"><span>Philadelphia 76ers</span><strong>+900</strong></div>
+        <div class="detail-row"><span>New York Knicks</span><strong>+900</strong></div>
+        <div class="detail-row"><span>Boston Celtics</span><strong>+1300</strong></div>
+        <div class="detail-row"><span>Cleveland Cavaliers</span><strong>+2200</strong></div>
+        <div class="note" style="margin-top:8px;">DraftKings prices. Thunder and Spurs are co-favorites.</div>
+      </div>
+      <div class="card">
+        <div class="section-title" style="font-size:15px;">Eastern Conference</div>
+        <div class="detail-row"><span>New York Knicks</span><strong>+350</strong></div>
+        <div class="detail-row"><span>Philadelphia 76ers</span><strong>+380</strong></div>
+        <div class="detail-row"><span>Boston Celtics</span><strong>+550</strong></div>
+        <div class="note" style="margin-top:8px;">DraftKings conference odds.</div>
+      </div>
+      <div class="card">
+        <div class="section-title" style="font-size:15px;">Western Conference</div>
+        <div class="detail-row"><span>Oklahoma City Thunder</span><strong>+140</strong></div>
+        <div class="detail-row"><span>San Antonio Spurs</span><strong>+160</strong></div>
+        <div class="detail-row"><span>Denver Nuggets</span><strong>+400</strong></div>
+        <div class="note" style="margin-top:8px;">DraftKings conference odds.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="live" class="tab" style="display:none;">
+    <div class="section-title">Live / In-Progress <small>Current score vs projection</small></div>
+    <div class="brief">
+      <p>No games in progress. Once tip-off starts this tab will show live score, pace, and updated remaining edges.</p>
+      <div id="live-content"></div>
+    </div>
+  </section>
+
+  <section id="bankroll" class="tab" style="display:none;">
+    <div class="section-title">Bankroll / Tracking <small>Optional log of bets taken from the board</small></div>
+    <div class="brief">
+      <p>Track results of edges you acted on. Add rows manually or via the pipeline later.</p>
+      <table style="margin-top:12px;">
+        <thead><tr><th>Date</th><th>Market</th><th>Side</th><th>Edge</th><th>Result</th><th>Units</th></tr></thead>
+        <tbody><tr><td colspan="6" style="color:var(--muted);">No tracked bets yet.</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="notes" class="tab" style="display:none;">
+    <div class="section-title">Model Notes <small>Why the biggest edges exist</small></div>
+    <div class="brief" id="notes-content"></div>
+  </section>
+
+  <section id="schedule" class="tab" style="display:none;">
+    <div class="section-title">Schedule / Rest <small>Slate with rest and travel flags</small></div>
+    <div id="schedule-board"></div>
+  </section>
+
   <section id="residuals" class="tab" style="display:none;">
     <div class="residuals">
       <h2>Residual Leaders</h2>
@@ -180,9 +653,13 @@ tr:hover td { background: rgba(255,255,255,0.02); }
         <li>Cloudflare Pages</li>
       </ul>
       <p>This file is fully self-contained. Open it locally or host the folder. After games start, re-run the pipeline and refresh.</p>
-      <p style="margin-top:12px;">Files in this package: <code>NBA_PROJECTIONS.html</code>, <code>update_projections.py</code>, <code>projections_data.json</code></p>
+      <p style="margin-top:12px;">Files in this package: <code>NBA_PJ_MODEL.html</code>, <code>update_projections.py</code>, <code>projections_data.json</code></p>
     </div>
   </section>
+</div>
+
+<div class="modal-overlay" id="game-modal">
+  <div class="modal" id="modal-content"></div>
 </div>
 
 <script>
@@ -195,32 +672,34 @@ function edgeClass(e) {
   return e > 0 ? "pos" : "neg";
 }
 
-function renderBestBets() {
+function renderBestBets(filter = "all") {
   const bets = [];
-  // Game edges
-  DATA.games.forEach(g => {
-    if (Math.abs(g.spread_edge) >= 0.8) {
-      bets.push({
-        type: "Game Spread",
-        title: `${g.away} @ ${g.home}`,
-        detail: `Model ${g.model.spread > 0 ? "+" : ""}${g.model.spread} vs DK ${g.dk.spread}`,
-        edge: g.spread_edge,
-        side: g.spread_edge > 0 ? "Home cover lean" : "Away cover lean"
-      });
-    }
-    if (Math.abs(g.total_edge) >= 0.8) {
-      bets.push({
-        type: "Game Total",
-        title: `${g.away} @ ${g.home}`,
-        detail: `Model ${g.model.total} vs DK ${g.dk.total}`,
-        edge: g.total_edge,
-        side: g.total_edge > 0 ? "Over" : "Under"
-      });
-    }
-  });
+  // Game edges (only on "all")
+  if (filter === "all") {
+    DATA.games.forEach(g => {
+      if (Math.abs(g.spread_edge) >= 0.8) {
+        bets.push({
+          type: "Game Spread",
+          title: `${g.away} @ ${g.home}`,
+          detail: `Model ${g.model.spread > 0 ? "+" : ""}${g.model.spread} vs DK ${g.dk.spread}`,
+          edge: g.spread_edge,
+          side: g.spread_edge > 0 ? "Home cover lean" : "Away cover lean"
+        });
+      }
+      if (Math.abs(g.total_edge) >= 0.8) {
+        bets.push({
+          type: "Game Total",
+          title: `${g.away} @ ${g.home}`,
+          detail: `Model ${g.model.total} vs DK ${g.dk.total}`,
+          edge: g.total_edge,
+          side: g.total_edge > 0 ? "Over" : "Under"
+        });
+      }
+    });
+  }
   // Prop edges
   DATA.props.forEach(p => {
-    if (Math.abs(p.edge) >= 0.8) {
+    if (Math.abs(p.edge) >= 0.8 && (filter === "all" || p.stat === filter)) {
       bets.push({
         type: `${p.stat} Prop`,
         title: `${p.player} (${p.team})`,
@@ -251,12 +730,32 @@ function renderBestBets() {
   `).join("");
 }
 
+function teamLogo(abbr) {
+  const logos = {
+    BOS: "https://cdn.nba.com/logos/nba/1610612738/global/L/logo.svg",
+    DET: "https://cdn.nba.com/logos/nba/1610612765/global/L/logo.svg",
+    PHI: "https://cdn.nba.com/logos/nba/1610612755/global/L/logo.svg",
+    NYK: "https://cdn.nba.com/logos/nba/1610612752/global/L/logo.svg",
+    OKC: "https://cdn.nba.com/logos/nba/1610612760/global/L/logo.svg",
+    SAS: "https://cdn.nba.com/logos/nba/1610612759/global/L/logo.svg",
+    ATL: "https://cdn.nba.com/logos/nba/1610612737/global/L/logo.svg",
+    ORL: "https://cdn.nba.com/logos/nba/1610612753/global/L/logo.svg",
+    MIL: "https://cdn.nba.com/logos/nba/1610612749/global/L/logo.svg",
+    WAS: "https://cdn.nba.com/logos/nba/1610612764/global/L/logo.svg"
+  };
+  return logos[abbr] || "";
+}
+
 function renderGames() {
-  document.getElementById("games-board").innerHTML = DATA.games.map(g => `
-    <div class="card">
+  document.getElementById("games-board").innerHTML = DATA.games.map((g, i) => `
+    <div class="card clickable" data-idx="${i}">
       <div class="game-header">
         <div>
-          <div class="matchup">${g.away} @ ${g.home}</div>
+          <div class="matchup">
+            <img class="team-logo" src="${teamLogo(g.away)}" alt="${g.away}" onerror="this.style.display='none'">
+            ${g.away} @ ${g.home}
+            <img class="team-logo" src="${teamLogo(g.home)}" alt="${g.home}" onerror="this.style.display='none'">
+          </div>
           <div class="time">${g.date} · ${g.time}</div>
         </div>
       </div>
@@ -282,7 +781,55 @@ function renderGames() {
       <div class="note">${g.note}</div>
     </div>
   `).join("");
+
+  document.querySelectorAll("#games-board .card").forEach(card => {
+    card.onclick = () => openGameDetail(parseInt(card.dataset.idx));
+  });
 }
+
+function openGameDetail(idx) {
+  const g = DATA.games[idx];
+  const gameProps = DATA.props.filter(p => p.game === g.id).sort((a,b) => Math.abs(b.edge) - Math.abs(a.edge)).slice(0, 6);
+  const propsHtml = gameProps.length ? `
+    <div class="props-mini">
+      <strong style="font-size:13px;">Top Props for this game</strong>
+      <table style="margin-top:8px;">
+        <thead><tr><th>Player</th><th>Stat</th><th>Model</th><th>DK</th><th>Edge</th></tr></thead>
+        <tbody>
+          ${gameProps.map(p => `<tr>
+            <td>${p.player}</td><td>${p.stat}</td>
+            <td>${p.model}</td><td>${p.dk}</td>
+            <td class="${Math.abs(p.edge)>=0.6?(p.edge>0?'positive':'negative'):''}">${p.edge>0?'+':''}${p.edge}</td>
+          </tr>`).join("")}
+        </tbody>
+      </table>
+    </div>` : "";
+
+  document.getElementById("modal-content").innerHTML = `
+    <button class="close" onclick="document.getElementById('game-modal').classList.remove('show')">×</button>
+    <h3>${g.away} @ ${g.home}</h3>
+    <div style="color:var(--muted);font-size:13px;margin-bottom:14px;">${g.date} · ${g.time}</div>
+
+    <div class="detail-row"><span class="detail-label">Model Spread</span><strong>${g.model.spread > 0 ? "+" : ""}${g.model.spread}</strong></div>
+    <div class="detail-row"><span class="detail-label">DraftKings Spread</span><strong>${g.dk.spread}</strong></div>
+    <div class="detail-row"><span class="detail-label">Spread Edge</span><strong class="${edgeClass(g.spread_edge)}">${g.spread_edge > 0 ? "+" : ""}${g.spread_edge}</strong></div>
+
+    <div class="detail-row"><span class="detail-label">Model Total</span><strong>${g.model.total}</strong></div>
+    <div class="detail-row"><span class="detail-label">DraftKings Total</span><strong>${g.dk.total}</strong></div>
+    <div class="detail-row"><span class="detail-label">Total Edge</span><strong class="${edgeClass(g.total_edge)}">${g.total_edge > 0 ? "+" : ""}${g.total_edge}</strong></div>
+
+    <div class="detail-row"><span class="detail-label">Model Win % (${g.home})</span><strong>${Math.round(g.model.ml_home*100)}%</strong></div>
+    <div class="detail-row"><span class="detail-label">DraftKings ML</span><strong>${g.dk.ml_away} / ${g.dk.ml_home}</strong></div>
+
+    <div style="margin-top:14px;font-size:13px;color:var(--muted);">${g.note}</div>
+    ${propsHtml}
+  `;
+  document.getElementById("game-modal").classList.add("show");
+}
+
+document.getElementById("game-modal").onclick = e => {
+  if (e.target.id === "game-modal") e.target.classList.remove("show");
+};
 
 function populateGameFilter() {
   const sel = document.getElementById("game-filter");
@@ -299,10 +846,10 @@ function renderProps(stat = "all", game = "all") {
   if (stat !== "all") list = list.filter(p => p.stat === stat);
   if (game !== "all") list = list.filter(p => p.game === game);
   list.sort((a,b) => Math.abs(b.edge) - Math.abs(a.edge));
-  document.querySelector("#props-table tbody").innerHTML = list.map(p => {
+  document.querySelector("#props-table tbody").innerHTML = list.map((p, i) => {
     const cls = Math.abs(p.edge) >= 0.6 ? (p.edge > 0 ? "positive" : "negative") : "";
     return `<tr>
-      <td><div class="player">${p.player}</div><div class="team">${p.team}</div></td>
+      <td><div class="player clickable" data-player="${p.player}" data-team="${p.team}" data-game="${p.game}" style="cursor:pointer;color:var(--accent2);">${p.player}</div><div class="team">${p.team}</div></td>
       <td>${p.game}</td>
       <td>${p.stat}</td>
       <td class="stat">${p.model}</td>
@@ -311,6 +858,38 @@ function renderProps(stat = "all", game = "all") {
       <td>${p.side}</td>
     </tr>`;
   }).join("");
+
+  document.querySelectorAll("#props-table .player.clickable").forEach(el => {
+    el.onclick = () => openPlayerDetail(el.dataset.player, el.dataset.team, el.dataset.game);
+  });
+}
+
+function openPlayerDetail(name, team, game) {
+  const playerProps = DATA.props.filter(p => p.player === name && p.game === game);
+  const propsHtml = playerProps.map(p => `
+    <div class="detail-row">
+      <span class="detail-label">${p.stat}</span>
+      <span>Model <strong>${p.model}</strong> · DK <strong>${p.dk}</strong> · Edge <strong class="${edgeClass(p.edge)}">${p.edge > 0 ? "+" : ""}${p.edge}</strong> (${p.side})</span>
+    </div>`).join("");
+
+  document.getElementById("modal-content").innerHTML = `
+    <button class="close" onclick="document.getElementById('game-modal').classList.remove('show')">×</button>
+    <h3>${name}</h3>
+    <div style="color:var(--muted);font-size:13px;margin-bottom:14px;">${team} · ${game}</div>
+
+    <div style="font-weight:600;margin-bottom:6px;">Current Model Lines</div>
+    ${propsHtml}
+
+    <div style="margin-top:18px;padding-top:12px;border-top:1px solid var(--border);">
+      <div style="font-weight:600;margin-bottom:6px;">Season Stats</div>
+      <div style="color:var(--muted);font-size:13px;">
+        Season has not started. Once games begin, this section will pull live stats from 
+        <a href="https://www.nba.com/stats" target="_blank" style="color:var(--accent);">nba.com/stats</a> 
+        (PTS, REB, AST, 3PM, FG%, minutes, recent form, etc.).
+      </div>
+    </div>
+  `;
+  document.getElementById("game-modal").classList.add("show");
 }
 
 // Tabs
@@ -336,10 +915,189 @@ document.getElementById("game-filter").onchange = e => {
   renderProps(active, e.target.value);
 };
 
+function renderPropsByGame() {
+  const container = document.getElementById("props-by-game");
+  const games = [...new Set(DATA.props.map(p => p.game))];
+  container.innerHTML = games.map(gid => {
+    const props = DATA.props.filter(p => p.game === gid).sort((a,b) => Math.abs(b.edge) - Math.abs(a.edge));
+    const g = DATA.games.find(x => x.id === gid) || {away:"?", home:"?"};
+    return `
+      <div class="card" style="margin-bottom:14px;">
+        <div class="section-title" style="font-size:16px;">${g.away} @ ${g.home} <small>${gid}</small></div>
+        <table>
+          <thead><tr><th>Player</th><th>Stat</th><th>Model</th><th>DK</th><th>Edge</th><th>Side</th></tr></thead>
+          <tbody>
+            ${props.map(p => `<tr>
+              <td><div class="player">${p.player}</div><div class="team">${p.team}</div></td>
+              <td>${p.stat}</td>
+              <td class="stat">${p.model}</td>
+              <td class="stat">${p.dk}</td>
+              <td class="stat ${Math.abs(p.edge)>=0.6?(p.edge>0?'positive':'negative'):''}">${p.edge>0?'+':''}${p.edge}</td>
+              <td>${p.side}</td>
+            </tr>`).join("")}
+          </tbody>
+        </table>
+      </div>`;
+  }).join("");
+}
+
+function renderEdges() {
+  const rows = [];
+  DATA.games.forEach(g => {
+    if (Math.abs(g.spread_edge) >= 0.3) rows.push({type:"Spread", name:`${g.away}@${g.home}`, market:"Spread", model:g.model.spread, dk:g.dk.spread, edge:g.spread_edge, side:g.spread_edge>0?"Home":"Away"});
+    if (Math.abs(g.total_edge) >= 0.3) rows.push({type:"Total", name:`${g.away}@${g.home}`, market:"Total", model:g.model.total, dk:g.dk.total, edge:g.total_edge, side:g.total_edge>0?"Over":"Under"});
+  });
+  DATA.props.forEach(p => {
+    if (Math.abs(p.edge) >= 0.3) rows.push({type:"Prop", name:`${p.player} (${p.team})`, market:p.stat, model:p.model, dk:p.dk, edge:p.edge, side:p.side});
+  });
+  rows.sort((a,b) => Math.abs(b.edge) - Math.abs(a.edge));
+  document.querySelector("#edges-table tbody").innerHTML = rows.map(r => `
+    <tr>
+      <td>${r.type}</td>
+      <td>${r.name}</td>
+      <td>${r.market}</td>
+      <td class="stat">${r.model}</td>
+      <td class="stat">${r.dk}</td>
+      <td class="stat ${Math.abs(r.edge)>=0.6?(r.edge>0?'positive':'negative'):''}">${r.edge>0?'+':''}${r.edge}</td>
+      <td>${r.side}</td>
+    </tr>`).join("");
+}
+
+function renderNotes() {
+  const big = DATA.props.filter(p => Math.abs(p.edge) >= 1.0).slice(0, 5);
+  const gameEdges = DATA.games.filter(g => Math.abs(g.spread_edge) >= 1.5 || Math.abs(g.total_edge) >= 1.5);
+  let html = "<ul>";
+  gameEdges.forEach(g => {
+    html += `<li><strong>${g.away} @ ${g.home}</strong> — ${g.note}</li>`;
+  });
+  big.forEach(p => {
+    html += `<li><strong>${p.player} ${p.stat}</strong> (${p.game}) — Model ${p.model} vs DK ${p.dk} (${p.edge > 0 ? "+" : ""}${p.edge}). ${p.side}.</li>`;
+  });
+  html += "</ul>";
+  if (!big.length && !gameEdges.length) html = "<p>No large edges to annotate yet.</p>";
+  document.getElementById("notes-content").innerHTML = html;
+}
+
+function renderSchedule() {
+  document.getElementById("schedule-board").innerHTML = DATA.games.map(g => `
+    <div class="card" style="margin-bottom:10px;">
+      <div class="matchup">${g.away} @ ${g.home}</div>
+      <div class="time">${g.date} · ${g.time}</div>
+      <div class="note" style="margin-top:6px;">Rest: standard · Travel: none flagged</div>
+    </div>`).join("");
+}
+
+function renderTrends() {
+  document.getElementById("trends-content").innerHTML = "<p style='color:var(--muted);margin-top:10px;'>Form and residual trends will appear after Opening Night results are ingested.</p>";
+}
+
+function renderLive() {
+  document.getElementById("live-content").innerHTML = "<p style='color:var(--muted);margin-top:10px;'>No live games. Check back after tip-off.</p>";
+}
+
+document.getElementById("injury-toggle").onclick = () => {
+  document.getElementById("injury-details").classList.toggle("show");
+};
+
+document.querySelectorAll("#best-filters button").forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll("#best-filters button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    renderBestBets(btn.dataset.best);
+  };
+});
+
 renderGames();
 populateGameFilter();
 renderProps();
-renderBestBets();
+function americanToDecimal(american) {
+  if (american > 0) return (american / 100) + 1;
+  return (100 / Math.abs(american)) + 1;
+}
+function decimalToAmerican(decimal) {
+  if (decimal >= 2) return Math.round((decimal - 1) * 100);
+  return Math.round(-100 / (decimal - 1));
+}
+
+function renderParlays(legs = 2) {
+  const candidates = [];
+  DATA.props.forEach(p => {
+    if (Math.abs(p.edge) >= 0.8) {
+      candidates.push({
+        label: `${p.player} ${p.stat} ${p.side}`,
+        detail: `${p.game} · Model ${p.model} vs DK ${p.dk}`,
+        edge: p.edge,
+        dkOdds: -115 // typical prop juice; exact line moves
+      });
+    }
+  });
+  DATA.games.forEach(g => {
+    if (Math.abs(g.spread_edge) >= 0.8) candidates.push({
+      label: `${g.away}@${g.home} Spread ${g.spread_edge > 0 ? "Home" : "Away"}`,
+      detail: `Model ${g.model.spread} vs DK ${g.dk.spread}`,
+      edge: g.spread_edge,
+      dkOdds: -110
+    });
+    if (Math.abs(g.total_edge) >= 0.8) candidates.push({
+      label: `${g.away}@${g.home} Total ${g.total_edge > 0 ? "Over" : "Under"}`,
+      detail: `Model ${g.model.total} vs DK ${g.dk.total}`,
+      edge: g.total_edge,
+      dkOdds: -110
+    });
+  });
+  candidates.sort((a,b) => Math.abs(b.edge) - Math.abs(a.edge));
+
+  const board = document.getElementById("parlays-board");
+  if (candidates.length < legs) {
+    board.innerHTML = '<div class="card"><p>Not enough edges for this parlay size yet.</p></div>';
+    return;
+  }
+
+  const combos = [];
+  for (let i = 0; i < Math.min(3, candidates.length - legs + 1); i++) {
+    combos.push(candidates.slice(i, i + legs));
+  }
+
+  board.innerHTML = combos.map((combo, idx) => {
+    let decimal = 1;
+    combo.forEach(c => decimal *= americanToDecimal(c.dkOdds));
+    const parlayOdds = decimalToAmerican(decimal);
+    return `
+      <div class="card" style="margin-bottom:12px;">
+        <div class="section-title" style="font-size:15px;">
+          Parlay ${idx + 1} <small>${legs}-leg</small>
+          <span style="margin-left:auto;color:var(--accent);font-weight:700;">DK ~${parlayOdds > 0 ? "+" : ""}${parlayOdds}</span>
+        </div>
+        ${combo.map(c => `
+          <div class="detail-row">
+            <div>
+              <div style="font-weight:600;">${c.label}</div>
+              <div class="note">${c.detail}</div>
+            </div>
+            <div style="text-align:right;">
+              <div class="edge ${edgeClass(c.edge)}">${c.edge > 0 ? "+" : ""}${c.edge}</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:2px;">DK ${c.dkOdds}</div>
+            </div>
+          </div>
+        `).join("")}
+      </div>
+    `;
+  }).join("");
+}
+
+document.querySelectorAll("#parlay-filters button").forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll("#parlay-filters button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    renderParlays(parseInt(btn.dataset.legs));
+  };
+});
+
+renderParlays(2);
+renderNotes();
+renderSchedule();
+renderTrends();
+renderLive();
 document.getElementById("residual-content").innerHTML = "<p style='color:var(--muted);margin-top:12px;'>Residuals will populate after the first games. Re-run <code>update_projections.py</code> once results exist.</p>";
 </script>
 </body>
